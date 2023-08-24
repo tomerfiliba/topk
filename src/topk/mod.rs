@@ -218,6 +218,16 @@ impl<T: Eq + Hash> FilteredSpaceSaving<T> {
         self.into_sorted_vec().into_iter()
     }
 
+    /// Returns a sorted vector of all items (does not consume the FSS)
+    ///
+    /// Computes in **O(k*log(k))** time.
+    pub fn sorted_items_vec(&self) -> Vec<(&T, &ElementCounter)> {
+        let mut result = Vec::with_capacity(self.monitored_list.len());
+        result.extend(self.monitored_list.iter().map(|(k, v)| (k, &v.0)));
+        result.sort_by(|a, b| b.1.cmp(&a.1));
+        result
+    }
+
     /// Returns count of all seen items (sum of all inserted `count`).
     ///
     /// Computes in **O(1)** time.
@@ -341,10 +351,7 @@ mod tests {
     }
 
     fn topk_of<'a>(fss: &'a FilteredSpaceSaving<&str>) -> Vec<(&'a str, u64)> {
-        let mut result = Vec::with_capacity(fss.monitored_list.len());
-        result.extend(fss.monitored_list.iter().map(|(k, v)| (k, &v.0)));
-        result.sort_by(|a, b| b.1.cmp(&a.1));
-        result.iter().map(|(&name, &counter)| (name, counter.estimated_count())).collect::<Vec<_>>()
+        fss.sorted_items_vec().iter().map(|(&name, &counter)| (name, counter.estimated_count())).collect::<Vec<_>>()
     }
 
     #[test]
