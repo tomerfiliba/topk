@@ -223,7 +223,13 @@ impl<T: Eq + Hash> FilteredSpaceSaving<T> {
     /// Computes in **O(k*log(k))** time.
     pub fn sorted_items_vec(&self) -> Vec<(&T, &ElementCounter)> {
         let mut result = Vec::with_capacity(self.monitored_list.len());
-        result.extend(self.monitored_list.iter().map(|(k, v)| (k, &v.0)));
+        result.extend(self.monitored_list.iter().filter_map(|(k, v)|
+            if v.0.estimated_count>0 {
+                Some((k, &v.0))
+            } else {
+                None
+            }
+        ));
         result.sort_by(|a, b| b.1.cmp(&a.1));
         result
     }
